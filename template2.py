@@ -7,7 +7,10 @@ with open("remaining_residues.json", "r") as f:
     remaining_data = json.load(f)
 r = remaining_data["remaining_residues"]
 
-def f(x, m=m, k=100, Amax=20, Bmax=5, Cmax=30, Dmax=20, Emax=5, Fmax=30, all_=False):
+with open("templates.json", "r") as f:
+    existing_templates = json.load(f)
+
+def f(x, m=m, k=100, Amax=12, Bmax=2, Cmax=21, Dmax=12, Emax=2, Fmax=25, all_=False):
     ns = [x + i * m for i in range(k) if x + i * m >= 2]
     if not ns:
         return "No n>=2 in test range."
@@ -98,7 +101,7 @@ for r0, (A, B, C, D, E, F) in ok:
 
 print("Works!" if x == 1 else "Didn't work.")
 
-templates_data = {}
+templates_data = existing_templates.copy()
 for residue, (A, B, C, D, E, F) in ok:
     templates_data[str(residue)] = {
         "template": "template2",
@@ -109,9 +112,9 @@ for residue, (A, B, C, D, E, F) in ok:
         "E": E,
         "F": F
     }
-with open("templates_template2.json", "w") as f:
+with open("templates.json", "w") as f:
     json.dump(templates_data, f, indent=2)
 
 remaining_data = {"remaining_residues": bad}
-with open("remaining_residues_template2.json", "w") as f:
+with open("remaining_residues.json", "w") as f:
     json.dump(remaining_data, f, indent=2)
