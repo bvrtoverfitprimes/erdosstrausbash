@@ -1,93 +1,94 @@
-# Erdos-Straus Conjecture: Find parameterized templates
-# Goal: For each residue r (mod 840), find templates a=a_m*n+a_a, b=b_m*n+b_a, c=c_m*n+c_a
-# such that 4/n = 1/a + 1/b + 1/c holds for ALL n ≡ r (mod 840)
-
 import json
 from pathlib import Path
 
-MOD = 840
-testcases = 10**6
+m = 840
+r = list(range(m))
 
-def verify_erdos_straus(n, a, b, c):
-    """Verify 4/n = 1/a + 1/b + 1/c"""
-    if a <= 0 or b <= 0 or c <= 0 or n <= 0:
-        return False
-    return 4 * a * b * c == n * (b * c + a * c + a * b)
+def f(x, m=m, k=100, amax=6000, bmax=10000, all_=False):
+    ns = [x + i * m for i in range(k) if x + i * m >= 2]
+    if not ns:
+        return "No n>=2 in test range."
+    out = []
+    for a in range(1, amax):
+        c = 4 * a - 1
+        if (a * m) % c:
+            continue
+        b0 = (-a * x) % c
+        for j in range(bmax):
+            b = b0 + j * c
+            if b <= 0:
+                continue
+            ok = 1
+            for n in ns:
+                t = a * n + b
+                if t % c:
+                    ok = 0
+                    break
+                p = t // c
+                if p <= 0:
+                    ok = 0
+                    break
+                u = a * n * p
+                if u % b:
+                    ok = 0
+                    break
+                q = u // b
+                z = a * n
+                if 4 * p * z * q != n * (p * z + z * q + q * p):
+                    ok = 0
+                    break
+            if ok:
+                s = (a, b, c)
+                if all_:
+                    out.append(s)
+                else:
+                    return s
+    return out if all_ and out else ("Nothing worked." if not all_ else [])
 
-def test_template(residue, a_m, a_a, b_m, b_a, c_m, c_a, num_tests=100):
-    """Test if a template works for multiple values with given residue"""
-    n = residue if residue > 0 else MOD
-    step = MOD
-    
-    for _ in range(num_tests):
-        a = a_m * n + a_a
-        b = b_m * n + b_a
-        c = c_m * n + c_a
-        
-        if not verify_erdos_straus(n, a, b, c):
-            return False
-        
-        n += step
-        if n > testcases * MOD:
-            break
-    
-    return True
-
-# Known solution patterns from mathematical research on Erdos-Straus conjecture
-# These are parametric families that solve 4/n = 1/a + 1/b + 1/c for specific residue classes
-
-known_templates = {}
-
-# Pattern: when n is odd, 4/n = 1/(n) + 1/(n) + 1/(n) doesn't work but other patterns do
-# We use known parametric solutions discovered through computational search
-
-# Example patterns (need to verify with actual Erdos-Straus research):
-# For even n: 4/n can often be expressed using small multipliers
-for r in range(840):
-    # Skip for now - need actual verified templates
-    pass
-
-print("Finding templates for Erdos-Straus conjecture mod 840...")
-found_templates = {}
-unsolved_residues = []
-
-for residue in range(840):
-    if residue % 100 == 0:
-        print(f"  Processing residue {residue}...", flush=True)
-    
-    # Check if we have a known template
-    if residue in known_templates:
-        template = known_templates[residue]
-        if test_template(residue, template["a_mult"], template["a_add"], 
-                         template["b_mult"], template["b_add"],
-                         template["c_mult"], template["c_add"], num_tests=50):
-            found_templates[str(residue)] = template
-            print(f"✓ Residue {residue} (verified template)")
-        else:
-            unsolved_residues.append(residue)
+ok = []
+bad = []
+for x in r:
+    s = f(x, m)
+    print(x, s)
+    if s == "Nothing worked.":
+        bad.append(x)
     else:
-        # For other residues, we would need to search or use known mathematical results
-        unsolved_residues.append(residue)
+        ok.append((x, s))
 
-# Save results
-output_file = Path("templates.json")
-output_data = {
-    "mod": MOD,
-    "testcases": testcases,
-    "templates": found_templates,
-    "unsolved_residues": unsolved_residues,
-    "total_solved": len(found_templates),
-    "total_unsolved": len(unsolved_residues),
-    "note": "Erdos-Straus conjecture template finding. Parametric solutions (a,b,c functions of n) verified up to 10^6*840. Missing: actual known solutions need to be added from mathematical research.",
-    "verification": "Each template was tested to work for 50+ different n values with the given residue mod 840."
-}
+print(len(ok) * 100 // len(r))
+print(bad)
+print(ok)
 
-with open(output_file, "w") as f:
-    json.dump(output_data, f, indent=2)
+def t(n, a, b, c):
+    u = a * n + b
+    if u % c:
+        return 0
+    p = u // c
+    v = a * n * p
+    if v % b:
+        return 0
+    q = v // b
+    z = a * n
+    return 4 * p * z * q == n * (p * z + z * q + q * p)
 
-print(f"\n{'='*60}")
-print(f"Results saved to {output_file}")
-print(f"Solved residues: {len(found_templates)}/840")
-print(f"Unsolved residues: {len(unsolved_residues)}/840")
-print(f"\nNote: The Erdos-Straus conjecture requires specific parametric solutions.")
-print(f"Known solutions need to be added from peer-reviewed mathematical research.")
+x = 1
+for r0, (a, b, c) in ok:
+    for n in range(r0, 10**6, m):
+        x *= t(n, a, b, c)
+
+print("Works!" if x == 1 else "Didn't work.")
+
+templates_data = {}
+for residue, (a, b, c) in ok:
+    templates_data[str(residue)] = {
+        "template": "template1",
+        "a": a,
+        "b": b,
+        "c": c
+    }
+with open("templates.json", "w") as f:
+    json.dump(templates_data, f, indent=2)
+
+remaining_data = {"remaining_residues": bad}
+with open("remaining_residues.json", "w") as f:
+    json.dump(remaining_data, f, indent=2)
