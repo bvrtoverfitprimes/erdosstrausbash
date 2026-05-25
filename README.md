@@ -8,5 +8,5 @@ Mordell showed that the Erdős–Straus conjecture can be reduced to checking on
 - \( n = (4k)^2 \)
 - \( n = (6k)^2 \)
 - \( n = (12k)^2 \)
-- 
+
 We try to reproduce Mordell-type reductions by constructing best-fit template families for the remaining cases, aiming to capture all solutions to the Erdős–Straus equation through structured parameterizations.
